@@ -16,6 +16,7 @@ class snakeOb(object):
         self.x = [self.width/2]
         self.y = [self.width/2]
 
+    # Responsible for movement of the snake
     def move(self, surface):
         # Used to make sure the Mac thinks the program is responding
 
@@ -103,7 +104,7 @@ def createSnack(width, snakeSize, snake):
         # If not, break
         else:
             break
-
+    # Returns the variables needed to create the snack
     return (x,y)
 
 # Redraws the window with the snake
@@ -124,6 +125,7 @@ def main():
     applx, apply = createSnack(width, snakeSize, snake)
     flag = True
 
+    # Starts the clock
     clock = pygame.time.Clock()
 
     # Runs game
@@ -133,6 +135,7 @@ def main():
         # Moves the snake
         snake.move(win)
 
+        # Adds a cube to the snake and move the apple
         if snake.x[0] == applx and snake.y[0] == apply:
             snake.addCube()
             applx, apply = createSnack(width, snakeSize, snake)
@@ -145,6 +148,8 @@ def main():
             if event.type == pygame.QUIT:
                  sys.exit(0)
 
-
+# Initilizes pygame
 pygame.init()
+
+# Runs the main function
 main()
