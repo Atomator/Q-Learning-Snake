@@ -3,30 +3,19 @@ import random
 import sys
 import pygame
 
-class apple(object):
-    def __init__(self, a):
-        self.applx = 60
-        self.apply = 200
-        self.a = a
+class snakeOb(object):
 
-    def makeLocation(self):
-        self.applx = random.randint(0,(width/20)-1) * 20
-        self.apply = random.randint(0,(width/20)-1) * 20
-
-    def draw(self, surface):
-        pygame.draw.rect(surface, (255, 0, 0), (self.applx, self.apply, 20, 20))
-
-class snake(object):
-    def __init__(self, color, pos):
+    # Sets inital perameters
+    def __init__(self, color, pos, snakeSize, width):
         self.color = color
+        self.width = width
+        self.snakeSize = snakeSize
         self.dirnx = 0
         self.dirny = 0
-        self.cube = cube(pos)
-        self.apple = apple(True)
-        self.x = [240]
-        self.y = [240]
+        self.cube = cube()
+        self.x = [self.width/2]
+        self.y = [self.width/2]
 
-        # self.body.append(self.head)
     def move(self, surface):
         # Used to make sure the Mac thinks the program is responding
 
@@ -53,24 +42,25 @@ class snake(object):
                     self.dirnx = 0
                     self.dirny = 1
 
-        # Creates a array with each the updated values from the set function above
-        if self.x[0] > 480: self.x[0] = 0
-        elif self.y[0] > 480: self.y[0] = 0
-        elif self.x[0] < 0: self.x[0] = 480
-        elif self.y[0] < 0: self.y[0] = 480
+        # Checks to see if the snake is off the screen, the moves it to ther other side if it is
+        if self.x[0] > self.width - self.snakeSize:
+            self.x[0] = 0
+        elif self.y[0] > self.width - self.snakeSize:
+            self.y[0] = 0
+        elif self.x[0] < 0:
+            self.x[0] = self.width - self.snakeSize
+        elif self.y[0] < 0:
+            self.y[0] = self.width - self.snakeSize
         else:
-             self.x[0] = self.x[0] + self.dirnx * 20
-             self.y[0] = self.y[0] + self.dirny * 20
+             self.x[0] = self.x[0] + self.dirnx * self.snakeSize
+             self.y[0] = self.y[0] + self.dirny * self.snakeSize
 
-        if self.x[0] == self.apple.applx and self.y[0] == self.apple.apply:
-            self.apple.makeLocation()
-            self.x.append(self.x[len(self.x)-1])
-            self.y.append(self.y[len(self.y)-1])
-
+        # Changes to position of each part of the snake
         for i in range(len(self.x)-1,0,-1):
             self.x[i] = self.x[i-1]
             self.y[i] = self.y[i-1]
 
+        # Checks to see if the snake has run into itself (Needs to moved)
         for i in range(len(self.x)-1,2,-1):
             if self.x[i] == self.x[0] and self.y[i] == self.y[0]:
                 self.x = [240]
@@ -79,46 +69,82 @@ class snake(object):
                 self.dirny = 0
                 break
 
-    def reset(self, pos):
-        pass
+    # Adds a cube to the snake
     def addCube(self):
-        pass
-    def draw(self, surface):
-        self.apple.draw(surface)
+        self.x.append(self.x[len(self.x)-1])
+        self.y.append(self.y[len(self.y)-1])
+
+    # Draws each part of the snake
+    def drawSnake(self, surface):
         for i in range(len(self.x)):
-            self.cube.draw(surface, self.x[i], self.y[i])
+            self.cube.draw(surface, self.x[i], self.y[i], self.snakeSize, self.color)
 
-
+# Object used to draw different cubes
 class cube (object):
-    def __init__ (self, pos):
-        self.pos = pos
 
-    def draw (self, surface, x, y):
-        pygame.draw.rect(surface, (0, 255, 0), (x, y, 20, 20))
+    # Init's the object
+    def __init__ (self):
+        pass
 
-def redrawWindow(surface):
-    global width
+    # Draws the cube
+    def draw (self, surface, x, y, snakeSize, color):
+        pygame.draw.rect(surface, color, (x, y, snakeSize, snakeSize))
+
+# Function used in order to create the snake
+def createSnack(width, snakeSize, snake):
+    # Makes sure cube is not drawn in location of snake
+    while True:
+        # Generates location
+        x = random.randint(0,(width/snakeSize)-1) * snakeSize
+        y = random.randint(0,(width/snakeSize)-1) * snakeSize
+        # Checks to see if the snake is there, if it is continue the loop
+        if len(list(filter(lambda z : z == x, snake.x))) > 0 and len(list(filter(lambda z : z == y, snake.y))) > 0:
+            continue
+        # If not, break
+        else:
+            break
+
+    return (x,y)
+
+# Redraws the window with the snake
+def redrawWindow(surface, s, a, applx, apply, snakeSize):
     surface.fill((0,0,0))
-    s.draw(surface)
+    s.drawSnake(surface)
+    a.draw(surface, applx, apply, snakeSize, (255,0,0))
     pygame.display.update()
 
+# Main function that creates base objects and loops through objects and functions
 def main():
-    global width, s, speed, a
-    width = 500
+    # Initial parameters
+    width = 400
+    snakeSize = 20
     win = pygame.display.set_mode((width , width))
-    s = snake((255,0,0), (250,250))
-    a = apple(True)
+    snake = snakeOb((0,255,0), (250,250), snakeSize, width)
+    apple = cube()
+    applx, apply = createSnack(width, snakeSize, snake)
     flag = True
 
     clock = pygame.time.Clock()
 
+    # Runs game
     while flag:
-        clock.tick(15)
-        redrawWindow(win)
-        s.move(win)
+        # Limits the frame rate of the application
+        clock.tick(20)
+        # Moves the snake
+        snake.move(win)
+
+        if snake.x[0] == applx and snake.y[0] == apply:
+            snake.addCube()
+            applx, apply = createSnack(width, snakeSize, snake)
+
+        # Draws the window
+        redrawWindow(win, snake, apple, applx, apply, snakeSize)
+
+        # Makes sure game is responding to Mac
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                  sys.exit(0)
+
 
 pygame.init()
 main()

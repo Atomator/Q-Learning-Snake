@@ -1,4 +1,4 @@
-#!/Users/connorsparks/Desktop/Code/Projects/AP Computer Science Princibles/CreateTask/env/bin/python
+#!/Users/connorsparks/Desktop/Code/Projects/AP Computer Science Principles/create-task/env/bin/python
 
 import sys
 import getopt
