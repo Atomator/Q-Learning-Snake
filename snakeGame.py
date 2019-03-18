@@ -173,6 +173,7 @@ def getVariables(snake, applx, apply):
     if snake.y[0] < apply:
         X[:,7] = 1
 
+    X = np.insert(X, 0, 1, axis=1)
     y = snake.NNY
 
     return X, y
@@ -206,7 +207,7 @@ def main():
     snake = snakeOb((0,255,0), (250,250), snakeSize, width)
     apple = cube()
     applx, apply = createSnack(width, snakeSize, snake)
-    weights1 = np.random.rand(hidden_layer_nodes, 8) * (2 * epsilon) - epsilon
+    weights1 = np.random.rand(hidden_layer_nodes, 9) * (2 * epsilon) - epsilon
     weights2 = np.random.rand(5, hidden_layer_nodes + 1) * (2 * epsilon) - epsilon
     whereMove = 0
     flag = True
@@ -226,7 +227,7 @@ def main():
             if y == 0:
                 weights1,  weights2 = nnTrain(1, weights1, weights2, X, y)
             else:
-                weights1,  weights2 = nnTrain(50, weights1, weights2, X, y)
+                weights1,  weights2 = nnTrain(500, weights1, weights2, X, y)
         elif snake.Human == False:
             whereMove = nnOuput(X, weights1, weights2, y)
 
