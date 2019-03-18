@@ -113,6 +113,7 @@ def main():
     snake = snakeOb((0,255,0), (250,250), snakeSize, width)
     apple = cube()
     applx, apply = createSnack(width, snakeSize, snake)
+    highScore = 0
     flag = True
 
     # Starts the clock
@@ -135,8 +136,6 @@ def main():
 
         ql.updateQ(oldx, oldy)
 
-        print(qTable)
-
         # Adds a cube to the snake and move the apple
         if snake.x[0] == applx and snake.y[0] == apply:
             snake.addCube()
@@ -144,6 +143,12 @@ def main():
 
         # Draws the window
         redrawWindow(win, snake, apple, applx, apply, snakeSize)
+
+        score = len(snake.x)
+        if score > highScore:
+            highScore = score
+
+        print(highScore)
 
         # Makes sure game is responding to Mac
         for event in pygame.event.get():

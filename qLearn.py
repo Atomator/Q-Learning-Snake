@@ -123,13 +123,10 @@ class qLearn(object):
         distance = math.sqrt((self.x - self.applx)**2 + (self.y - self.apply)**2)
         if self.x == self.applx and self.y == self.apply:
             reward = 1
-            print("got it")
         elif distance < distance_old:
             reward = 0.5
-            print("less")
         else:
             reward = -1
-            print("more")
         return reward
     def future(self):
         move = self.move()
