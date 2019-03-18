@@ -38,6 +38,8 @@ def feedForward(X, weights1, weights2):
 def NN(time_to_train, X, y, weights1, weights2, yOutput):
     Y = np.zeros(5)
     Y[y] = 1
+    X = np.insert(X, 0, 1, axis=1).T
+    print(X)
 
     m = np.shape(X)
 

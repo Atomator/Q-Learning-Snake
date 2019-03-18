@@ -91,15 +91,6 @@ class snakeOb(object):
             self.x[i] = self.x[i-1]
             self.y[i] = self.y[i-1]
 
-        # Checks to see if the snake has run into itself (Needs to moved)
-        for i in range(len(self.x)-1,2,-1):
-            if self.x[i] == self.x[0] and self.y[i] == self.y[0]:
-                self.x = [240]
-                self.y = [240]
-                self.dirnx = 0
-                self.dirny = 0
-                break
-
     # Adds a cube to the snake
     def addCube(self):
         self.x.append(self.x[len(self.x)-1])
@@ -209,6 +200,8 @@ def main():
     weights1 = np.random.rand(hidden_layer_nodes, 8) * (2 * epsilon) - epsilon
     weights2 = np.random.rand(5, hidden_layer_nodes + 1) * (2 * epsilon) - epsilon
     whereMove = 0
+    X = np.array([(0, 0, 0, 0, 0, 0, 0, 0)])
+    y = []
     flag = True
 
     # Starts the clock
@@ -220,15 +213,12 @@ def main():
         clock.tick(10)
         # Moves the snake
 
-        X, y = getVariables(snake, applx, apply)
+        X_temp, y_temp = getVariables(snake, applx, apply)
 
-        if snake.Human and ((snake.dirnx == 0 and snake.dirny == 0) == False):
-            if y == 0:
-                weights1,  weights2 = nnTrain(1, weights1, weights2, X, y)
-            else:
-                weights1,  weights2 = nnTrain(50, weights1, weights2, X, y)
-        elif snake.Human == False:
-            whereMove = nnOuput(X, weights1, weights2, y)
+        # if snake.Human and ((snake.dirnx == 0 and snake.dirny == 0) == False):
+        #     weights1,  weights2 = nnTrain(50, weights1, weights2, X, y)
+        # elif snake.Human == False:
+        #     whereMove = nnOuput(X, weights1, weights2, y)
 
         snake.move(win, whereMove)
 
@@ -238,6 +228,15 @@ def main():
         if snake.x[0] == applx and snake.y[0] == apply:
             snake.addCube()
             applx, apply = createSnack(width, snakeSize, snake)
+
+        # Checks to see if the snake has run into itself (Needs to moved)
+        for i in range(len(snake.x)-1,2,-1):
+            if snake.x[i] == snake.x[0] and snake.y[i] == snake.y[0]:
+                snake.x = [240]
+                snake.y = [240]
+                snake.dirnx = 0
+                snake.dirny = 0
+                break
 
         # Draws the window
         redrawWindow(win, snake, apple, applx, apply, snakeSize, score)
