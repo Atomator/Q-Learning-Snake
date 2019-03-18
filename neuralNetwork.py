@@ -36,17 +36,17 @@ def feedForward(X, weights1, weights2):
     return output, z2, a1, a2
     
 def NN(time_to_train, X, y, weights1, weights2, yOutput):
-    Y = np.zeros(5)
-    Y[y] = 1
-    X = np.insert(X, 0, 1, axis=1).T
-    print(X)
-
+    Y = np.zeros([y.shape[0],5])
+    for i in range (y.shape[0]):
+        Y[i, y[i]] = 1
+    
     m = np.shape(X)
 
-    output = np.zeros(Y.shape)
+    w1 = weights1
+    w2 = weights2
 
     for i in range (time_to_train):
-        output, z2, a1, a2 = feedForward(X, weights1, weights2)
+        output, z2, a1, a2 = feedForward(X, w1, w2)
         
         d3 = (output - Y)
         d2 = np.dot(d3,weights2) * (np.insert(sigmoid_derivative(z2).T, 0, 1, axis=1))
@@ -54,16 +54,15 @@ def NN(time_to_train, X, y, weights1, weights2, yOutput):
         d_weights1 = np.dot(a1,d2[:,1:]).T/m[0]
         d_weights2 = np.dot(a2,d3).T/m[0]
         
-        weights1 -= d_weights1
-        weights2 -= d_weights2
-
-    return output, weights1, weights2
+        w1 -= d_weights1 * alpha
+        w2 -= d_weights2 * alpha      
+    return output, w1, w2
     
 def predict(results, y):
-  p = 0
+  p = np.zeros(y.shape)
   for i in range (np.shape(results)[0]):
     indexLocation = np.argwhere(results[i,:] == np.amax(results[i,:]))
-    p = indexLocation[0]
+    p[i] = indexLocation[0]
   return p
 
 def accuracy(outputFinal, y):

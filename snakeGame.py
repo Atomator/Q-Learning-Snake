@@ -21,6 +21,7 @@ class snakeOb(object):
         self.y = [self.width/2]
         self.NNY = 0
         self.Human = True
+        self.kill = False
 
     # Responsible for movement of the snake
     def move(self, surface, whereMove):
@@ -38,6 +39,8 @@ class snakeOb(object):
             for key in keys:
                 if keys[pygame.K_RETURN]:
                     self.Human = not self.Human
+                if keys[pygame.K_SPACE]:
+                    self.kill = True
 
             for key in keys:
                 if self.Human == True:
@@ -163,7 +166,8 @@ def getVariables(snake, applx, apply):
     # Food Is Behind
     if snake.y[0] < apply:
         X[:,7] = 1
-
+    
+    X = np.insert(X, 0, 1, axis=1)
     y = snake.NNY
 
     return X, y
@@ -172,8 +176,7 @@ def nnTrain(time,weights1, weights2, X, y):
     output, weights1, weights2 = NN(time, X, y, weights1, weights2, 5)
     Y = np.zeros(5)
     Y[y] = 1
-    print(predict(output, y))
-    return weights1, weights2
+    return output, weights1, weights2
 
 
 def nnOuput(X, w1, w2, y):
@@ -197,11 +200,10 @@ def main():
     snake = snakeOb((0,255,0), (250,250), snakeSize, width)
     apple = cube()
     applx, apply = createSnack(width, snakeSize, snake)
-    weights1 = np.random.rand(hidden_layer_nodes, 8) * (2 * epsilon) - epsilon
+    weights1 = np.random.rand(hidden_layer_nodes, 9) * (2 * epsilon) - epsilon
     weights2 = np.random.rand(5, hidden_layer_nodes + 1) * (2 * epsilon) - epsilon
     whereMove = 0
-    X = np.array([(0, 0, 0, 0, 0, 0, 0, 0)])
-    y = []
+    X, y = getVariables(snake, applx, apply)
     flag = True
 
     # Starts the clock
@@ -215,10 +217,14 @@ def main():
 
         X_temp, y_temp = getVariables(snake, applx, apply)
 
-        # if snake.Human and ((snake.dirnx == 0 and snake.dirny == 0) == False):
-        #     weights1,  weights2 = nnTrain(50, weights1, weights2, X, y)
-        # elif snake.Human == False:
-        #     whereMove = nnOuput(X, weights1, weights2, y)
+        if snake.Human == True and np.array_equal(X_temp.ravel(), X[-1]) != True:
+            print(X.shape[0])
+            X = np.vstack((X, X_temp))
+            y = np.vstack((y, y_temp))
+
+        if snake.Human == False:
+            y_temp = np.array([(y_temp)])
+            whereMove = nnOuput(X_temp, weights1, weights2, y_temp)
 
         snake.move(win, whereMove)
 
@@ -229,13 +235,25 @@ def main():
             snake.addCube()
             applx, apply = createSnack(width, snakeSize, snake)
 
+        if snake.kill == True:
+            output, weights1, weights2 = nnTrain(50000, weights1, weights2, X, y)
+            print(accuracy(output, y))
+            snake.x = [240]
+            snake.y = [240]
+            snake.dirnx = 0
+            snake.dirny = 0
+            snake.kill = False
+
         # Checks to see if the snake has run into itself (Needs to moved)
         for i in range(len(snake.x)-1,2,-1):
-            if snake.x[i] == snake.x[0] and snake.y[i] == snake.y[0]:
+            if (snake.x[i] == snake.x[0] and snake.y[i] == snake.y[0]):
+                output, weights1, weights2 = nnTrain(10000, weights1, weights2, X, y)
+                print(accuracy(output, y))
                 snake.x = [240]
                 snake.y = [240]
                 snake.dirnx = 0
                 snake.dirny = 0
+                snake.kill = False
                 break
 
         # Draws the window
