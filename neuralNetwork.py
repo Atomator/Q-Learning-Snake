@@ -3,8 +3,7 @@ import numpy as np
 # Weights and ouput of the function
 epsilon = 0.12
 
-hidden_layer_nodes = 500
-time_to_train = 10
+hidden_layer_nodes = 25
 
 # Learning rate (alpha)
 alpha = 0.1

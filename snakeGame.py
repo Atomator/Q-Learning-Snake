@@ -177,11 +177,11 @@ def getVariables(snake, applx, apply):
 
     return X, y
 
-def nnTrain(weights1, weights2, X, y):
-    output, weights1, weights2 = NN(100, X, y, weights1, weights2, 5)
+def nnTrain(time,weights1, weights2, X, y):
+    output, weights1, weights2 = NN(time, X, y, weights1, weights2, 5)
     Y = np.zeros(5)
     Y[y] = 1
-    print(costFunction(output, Y, X.shape))
+    print(predict(output, y))
     return weights1, weights2
 
 
@@ -223,7 +223,10 @@ def main():
         X, y = getVariables(snake, applx, apply)
 
         if snake.Human and ((snake.dirnx == 0 and snake.dirny == 0) == False):
-            weights1, weights2 = nnTrain(weights1, weights2, X, y)
+            if y == 0:
+                weights1,  weights2 = nnTrain(1, weights1, weights2, X, y)
+            else:
+                weights1,  weights2 = nnTrain(50, weights1, weights2, X, y)
         elif snake.Human == False:
             whereMove = nnOuput(X, weights1, weights2, y)
 
