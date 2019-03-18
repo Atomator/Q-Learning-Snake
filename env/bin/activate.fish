@@ -56,7 +56,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/connorsparks/Desktop/Code/Projects/AP Computer Science Principles/create-task/env"
+set -gx VIRTUAL_ENV "/Users/connorsparks/Desktop/Code/Projects/AP Computer Science Princibles/CreateTask/env"
 
 # https://github.com/fish-shell/fish-shell/issues/436 altered PATH handling
 if test (echo $FISH_VERSION | tr "." "\n")[1] -lt 3

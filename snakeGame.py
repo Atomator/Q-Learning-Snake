@@ -3,6 +3,8 @@ import random
 import sys
 import pygame
 
+from qLearn import *
+
 class snakeOb(object):
 
     # Sets inital perameters
@@ -17,31 +19,19 @@ class snakeOb(object):
         self.y = [self.width/2]
 
     # Responsible for movement of the snake
-    def move(self, surface):
-        # Used to make sure the Mac thinks the program is responding
-
-        # Checks for an event every clock tick then loops through events to see if a pygame.QUIT is called
-        for event in pygame.event.get():
-            # If this event is called, it quits the program
-            if event.type == pygame.QUIT:
-                pygame.quit()
-
-            # This in an array that has 1s or 0s depending on whether a key was pressed
-            keys = pygame.key.get_pressed()
-
-            for key in keys:
-                if keys[pygame.K_LEFT] and (self.dirnx != 1 or self.dirny != 0):
-                    self.dirnx = -1
-                    self.dirny = 0
-                elif keys[pygame.K_RIGHT] and (self.dirnx != -1 or self.dirny != 0):
-                    self.dirnx = 1
-                    self.dirny = 0
-                elif keys[pygame.K_UP] and (self.dirnx != 0 or self.dirny != 1):
-                    self.dirnx = 0
-                    self.dirny = -1
-                elif keys[pygame.K_DOWN] and (self.dirnx != 0 or self.dirny != -1):
-                    self.dirnx = 0
-                    self.dirny = 1
+    def move(self, surface, move):
+        if move == 0 and (self.dirnx != 1 or self.dirny != 0):
+            self.dirnx = -1
+            self.dirny = 0
+        elif move == 1 and (self.dirnx != -1 or self.dirny != 0):
+            self.dirnx = 1
+            self.dirny = 0
+        elif move == 2 and (self.dirnx != 0 or self.dirny != 1):
+            self.dirnx = 0
+            self.dirny = -1
+        elif move == 3 and (self.dirnx != 0 or self.dirny != -1):
+            self.dirnx = 0
+            self.dirny = 1
 
         # Checks to see if the snake is off the screen, the moves it to ther other side if it is
         if self.x[0] > self.width - self.snakeSize:
@@ -131,9 +121,21 @@ def main():
     # Runs game
     while flag:
         # Limits the frame rate of the application
-        clock.tick(20)
+        clock.tick(10)
+
+        ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
+
+        oldx = snake.x[0]
+        oldy = snake.y[0]
+
         # Moves the snake
-        snake.move(win)
+        snake.move(win, ql.move())
+        
+        ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
+
+        ql.updateQ(oldx, oldy)
+
+        print(qTable)
 
         # Adds a cube to the snake and move the apple
         if snake.x[0] == applx and snake.y[0] == apply:
