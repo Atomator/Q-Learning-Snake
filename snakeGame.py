@@ -3,7 +3,7 @@ import random
 import sys
 import pygame
 
-from qLearn import *
+from qLearn_multi import *
 
 class snakeOb(object):
 
@@ -34,26 +34,28 @@ class snakeOb(object):
             self.dirny = 1
 
 
+        newX = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+        newY = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
 
         # Checks to see if the snake is off the screen, the moves it to ther other side if it is
-        if self.x[0] > 400:
-            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+        if self.x[0] >= 400:
+            self.x = newX
+            self.y = newY
             self.dirnx = 0
             self.dirny = 0
-        elif self.y[0] > 400:
-            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+        elif self.y[0] >= 400:
+            self.x = newX
+            self.y = newY
             self.dirnx = 0
             self.dirny = 0
-        elif self.x[0] < 0:
-            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+        elif self.x[0] <= 0:
+            self.x = newX
+            self.y = newY
             self.dirnx = 0
             self.dirny = 0
-        elif self.y[0] < 0:
-            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+        elif self.y[0] <= 0:
+            self.x = newX
+            self.y = newY
             self.dirnx = 0
             self.dirny = 0
         else:
@@ -128,7 +130,7 @@ def main():
     apple = cube()
     applx, apply = createSnack(width, snakeSize, snake)
     highScore = 0
-    timeOut = 0
+    move = 0
     flag = True
 
     # Starts the clock
@@ -137,20 +139,16 @@ def main():
     # Runs game
     while flag:
         # Limits the frame rate of the application
-        clock.tick(120)
+        clock.tick(1)
 
-        ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
+        move = howMove(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply)
 
-
-        oldx = snake.x[0]
-        oldy = snake.y[0]
+        beforeX, beforeY = snake.x, snake.y
 
         # Moves the snake
-        snake.move(win, ql.move())
+        snake.move(win, move)
 
-        ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
-
-        ql.updateQ(oldx, oldy)
+        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply)
 
         # Adds a cube to the snake and move the apple
         if int(snake.x[0]) == applx and int(snake.y[0]) == apply:
