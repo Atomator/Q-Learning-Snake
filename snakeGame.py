@@ -20,61 +20,26 @@ class snakeOb(object):
 
     # Responsible for movement of the snake
     def move(self, surface, move):
-        if move == 0 and (self.dirnx != 1 or self.dirny != 0):
+        if move == 0:
             self.dirnx = -1
             self.dirny = 0
-        elif move == 1 and (self.dirnx != -1 or self.dirny != 0):
+        elif move == 1:
             self.dirnx = 1
             self.dirny = 0
-        elif move == 2 and (self.dirnx != 0 or self.dirny != 1):
+        elif move == 2:
             self.dirnx = 0
             self.dirny = -1
-        elif move == 3 and (self.dirnx != 0 or self.dirny != -1):
+        elif move == 3:
             self.dirnx = 0
             self.dirny = 1
 
-
-        newX = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-        newY = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-
-        # Checks to see if the snake is off the screen, the moves it to ther other side if it is
-        if self.x[0] >= 400:
-            self.x = newX
-            self.y = newY
-            self.dirnx = 0
-            self.dirny = 0
-        elif self.y[0] >= 400:
-            self.x = newX
-            self.y = newY
-            self.dirnx = 0
-            self.dirny = 0
-        elif self.x[0] <= 0:
-            self.x = newX
-            self.y = newY
-            self.dirnx = 0
-            self.dirny = 0
-        elif self.y[0] <= 0:
-            self.x = newX
-            self.y = newY
-            self.dirnx = 0
-            self.dirny = 0
-        else:
-             self.x[0] = self.x[0] + self.dirnx * self.snakeSize
-             self.y[0] = self.y[0] + self.dirny * self.snakeSize
+        self.x[0] = self.x[0] + self.dirnx * self.snakeSize
+        self.y[0] = self.y[0] + self.dirny * self.snakeSize
 
         # Changes to position of each part of the snake
         for i in range(len(self.x)-1,0,-1):
             self.x[i] = self.x[i-1]
             self.y[i] = self.y[i-1]
-
-        # Checks to see if the snake has run into itself (Needs to moved)
-        for i in range(len(self.x)-1,2,-1):
-            if self.x[i] == self.x[0] and self.y[i] == self.y[0]:
-                self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-                self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
-                self.dirnx = 0
-                self.dirny = 0
-                break
 
     # Adds a cube to the snake
     def addCube(self):
@@ -131,6 +96,7 @@ def main():
     applx, apply = createSnack(width, snakeSize, snake)
     highScore = 0
     move = 0
+    died = False
     flag = True
 
     # Starts the clock
@@ -139,7 +105,7 @@ def main():
     # Runs game
     while flag:
         # Limits the frame rate of the application
-        clock.tick(1)
+        clock.tick(120)
 
         move = howMove(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply)
 
@@ -148,7 +114,27 @@ def main():
         # Moves the snake
         snake.move(win, move)
 
-        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply)
+        newX = [random.randint(0,(snake.width/snake.snakeSize)-1) * snake.snakeSize]
+        newY = [random.randint(0,(snake.width/snake.snakeSize)-1) * snake.snakeSize]
+
+        # Checks to see if the snake hits a wall
+        if snake.x[0] >= 400 or snake.y[0] >= 400 or snake.x[0] < 0 or snake.y[0] < 0:
+            died = True
+
+        # Checks to see if the snake has run into itself (Needs to moved)
+        for i in range(len(snake.x)-1,2,-1):
+            if snake.x[i] == snake.x[0] and snake.y[i] == snake.y[0]:
+                died = True
+                break
+
+        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, beforeX[0], beforeY[0], died)
+
+        if died:
+            snake.x = newX
+            snake.y = newY
+            snake.dirnx = 0
+            snake.dirny = 0
+            died = False
 
         # Adds a cube to the snake and move the apple
         if int(snake.x[0]) == applx and int(snake.y[0]) == apply:

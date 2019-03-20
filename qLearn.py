@@ -1,5 +1,6 @@
 import numpy as np
-import math 
+import math
+import random 
 
 qTable = np.random.rand(28, 4)
 alpha = 0.3
