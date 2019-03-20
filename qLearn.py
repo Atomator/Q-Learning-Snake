@@ -169,12 +169,20 @@ class qLearn(object):
         self.dirny = past_dirny
         self.x = past_x
         self.y = past_y
-    def updateQ(self, oldx, oldy):
+    def updateQ(self, oldx, oldy, olddirnx, olddirny, action):
         global qTable
-        state = self.getState()
-        action = self.move()
-        qCurrent = self.qTable[state, action]
+
+        otherx, othery, otherdirnx, otherdirny = self.x, self.y, self.dirnx, self.dirny
+
+        self.x, self.y, self.dirnx, self.dirny = oldx, oldy, olddirnx, olddirny,
+        stateold = self.getState()
+
+        qCurrent = self.qTable[stateold, action]
+
+        self.x, self.y, self.dirnx, self.dirny = otherx, othery, otherdirnx, otherdirny
+
         if self.getReward(oldx, oldy) == -0.75:
             print(self.getReward(oldx, oldy))
-        qTable[state, action] = qCurrent + alpha * ((self.getReward(oldx, oldy) + discount * self.future()) - qCurrent)
+
+        qTable[stateold, action] = qCurrent + alpha * ((self.getReward(oldx, oldy) + discount * self.future()) - qCurrent)
 

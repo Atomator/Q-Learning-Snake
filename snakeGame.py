@@ -33,15 +33,16 @@ class snakeOb(object):
             self.dirnx = 0
             self.dirny = 1
 
-
+        self.x[0] = self.x[0] + self.dirnx * self.snakeSize
+        self.y[0] = self.y[0] + self.dirny * self.snakeSize
 
         # Checks to see if the snake is off the screen, the moves it to ther other side if it is
-        if self.x[0] > 400:
+        if self.x[0] > 380:
             self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
             self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
             self.dirnx = 0
             self.dirny = 0
-        elif self.y[0] > 400:
+        elif self.y[0] > 380:
             self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
             self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
             self.dirnx = 0
@@ -56,9 +57,6 @@ class snakeOb(object):
             self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
             self.dirnx = 0
             self.dirny = 0
-        else:
-             self.x[0] = self.x[0] + self.dirnx * self.snakeSize
-             self.y[0] = self.y[0] + self.dirny * self.snakeSize
 
         # Changes to position of each part of the snake
         for i in range(len(self.x)-1,0,-1):
@@ -142,15 +140,16 @@ def main():
         ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
 
 
-        oldx = snake.x[0]
-        oldy = snake.y[0]
+        oldx, oldy, olddirnx, olddirny = snake.x[0], snake.y[0], snake.dirnx, snake.dirny
+
+        action = ql.move()
 
         # Moves the snake
-        snake.move(win, ql.move())
+        snake.move(win, action)
 
         ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
 
-        ql.updateQ(oldx, oldy)
+        ql.updateQ(oldx, oldy, olddirnx, olddirny, action)
 
         # Adds a cube to the snake and move the apple
         if int(snake.x[0]) == applx and int(snake.y[0]) == apply:
