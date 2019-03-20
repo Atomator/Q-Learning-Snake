@@ -33,15 +33,29 @@ class snakeOb(object):
             self.dirnx = 0
             self.dirny = 1
 
+
+
         # Checks to see if the snake is off the screen, the moves it to ther other side if it is
-        if self.x[0] > self.width - self.snakeSize:
-            self.x[0] = 0
-        elif self.y[0] > self.width - self.snakeSize:
-            self.y[0] = 0
+        if self.x[0] > 400:
+            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.dirnx = 0
+            self.dirny = 0
+        elif self.y[0] > 400:
+            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.dirnx = 0
+            self.dirny = 0
         elif self.x[0] < 0:
-            self.x[0] = self.width - self.snakeSize
+            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.dirnx = 0
+            self.dirny = 0
         elif self.y[0] < 0:
-            self.y[0] = self.width - self.snakeSize
+            self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+            self.dirnx = 0
+            self.dirny = 0
         else:
              self.x[0] = self.x[0] + self.dirnx * self.snakeSize
              self.y[0] = self.y[0] + self.dirny * self.snakeSize
@@ -54,8 +68,8 @@ class snakeOb(object):
         # Checks to see if the snake has run into itself (Needs to moved)
         for i in range(len(self.x)-1,2,-1):
             if self.x[i] == self.x[0] and self.y[i] == self.y[0]:
-                self.x = [240]
-                self.y = [240]
+                self.x = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
+                self.y = [random.randint(0,(self.width/self.snakeSize)-1) * self.snakeSize]
                 self.dirnx = 0
                 self.dirny = 0
                 break
@@ -114,6 +128,7 @@ def main():
     apple = cube()
     applx, apply = createSnack(width, snakeSize, snake)
     highScore = 0
+    timeOut = 0
     flag = True
 
     # Starts the clock
@@ -122,33 +137,34 @@ def main():
     # Runs game
     while flag:
         # Limits the frame rate of the application
-        clock.tick(10)
+        clock.tick(120)
 
         ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
+
 
         oldx = snake.x[0]
         oldy = snake.y[0]
 
         # Moves the snake
         snake.move(win, ql.move())
-        
+
         ql = qLearn(snake.dirnx, snake.dirny, applx, apply, snake.x[0], snake.y[0])
 
         ql.updateQ(oldx, oldy)
 
         # Adds a cube to the snake and move the apple
-        if snake.x[0] == applx and snake.y[0] == apply:
+        if int(snake.x[0]) == applx and int(snake.y[0]) == apply:
             snake.addCube()
             applx, apply = createSnack(width, snakeSize, snake)
-
+        
         # Draws the window
-        redrawWindow(win, snake, apple, applx, apply, snakeSize)
+        if highScore > 0:
+            redrawWindow(win, snake, apple, applx, apply, snakeSize)
 
         score = len(snake.x)
         if score > highScore:
             highScore = score
-
-        print(highScore)
+            print(highScore)
 
         # Makes sure game is responding to Mac
         for event in pygame.event.get():
