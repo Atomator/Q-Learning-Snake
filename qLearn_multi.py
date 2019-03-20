@@ -5,7 +5,9 @@ import random
 # 1: Direction, 2: Right, Left, Inline, 3: Above, Below, Inline, 4: Wall or Not, 5: Actions
 qTable = np.random.rand(4, 3, 3, 2, 4)
 discount = 0.9
-alpha = 0.3 
+alpha = 1
+chance = 900
+rewardTotal = 0 
 
 # Get the state variables for the snake
 def getState(x, y, dirnx, dirny, applx, apply):
@@ -46,8 +48,12 @@ def getState(x, y, dirnx, dirny, applx, apply):
 
 # Gets the movement based on qTable
 def howMove(x, y, dirnx, dirny, applx, apply):
-    direction, rigLef, belAbo, walno = getState(x, y, dirnx, dirny, applx, apply)
-    action = np.argwhere(qTable[direction, rigLef, belAbo, walno,:] == np.amax(qTable[direction, rigLef, belAbo, walno,:]))
+    ep = random.randint(0, 100)
+    if ep == chance:
+        action = [random.randint(0, 3)]
+    else:
+        direction, rigLef, belAbo, walno = getState(x, y, dirnx, dirny, applx, apply)
+        action = np.argwhere(qTable[direction, rigLef, belAbo, walno,:] == np.amax(qTable[direction, rigLef, belAbo, walno,:]))
     return action[0]
 
 def getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died):
@@ -55,14 +61,14 @@ def getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died):
     distance = math.sqrt((applx - x)**2 + (apply - y)**2)
     # print("old: " + str(distance_old))
     # print("current: " + str(distance))
-    if distance_old <= distance:
-        reward = -0.2
+    if distance_old > distance:
+        reward = 1
     elif x == applx and y == apply:
         reward = 10
     elif died:
         reward = -10
     else:
-        reward = -0.1
+        reward = 0
     return reward
 
 # Add apple shift
@@ -107,10 +113,56 @@ def getFuture(x, y, dirnx, dirny, applx, apply, timeRun):
     print(reward)
     return reward
 
-def updateQ(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died):
-    global qTable
-    direction, rigLef, belAbo, walno = getState(x, y, dirnx, dirny, applx, apply)
-    action = howMove(x, y, dirnx, dirny, applx, apply)
+def getFutureState(x, y, dirnx, dirny, applx, apply, timeRun):
+    state = 0 
+    for i in range(timeRun):
+
+        move = howMove(x, y, dirnx, dirny, applx, apply)
+        died = False
+
+        beforeX = x
+        beforeY = y
+
+        if move == 0:
+            dirnx = -1
+            dirny = 0
+        elif move == 1:
+            dirnx = 1
+            dirny = 0
+        elif move == 2:
+            dirnx = 0
+            dirny = -1
+        elif move == 3:
+            dirnx = 0
+            dirny = 1
+
+        x += dirnx * 20
+        y += dirny * 20
+
+        if x >= 400 or y >= 400 or x < 0 or y < 0:
+            died = True
+
+        direction, rigLef, belAbo, walno = getState(x, y, dirnx, dirny, applx, apply)
+
+        state += qTable[direction, rigLef, belAbo, walno, move]
+
+        if died:
+            x = random.randint(0,(400/20)-1) * 20
+            y = random.randint(0,(400/20)-1) * 20
+            dirnx = 0
+            dirny = 0
+            died = False
+
+    return state
+
+def updateQ(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died, action, beforeDirnx, beforeDirny):
+    global qTable, rewardTotal
+    direction, rigLef, belAbo, walno = getState(beforeX, beforeY, beforeDirnx, beforeDirny, applx, apply)
+    # action = howMove(x, y, dirnx, dirny, applx, apply)
     # print(getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died))
     qCurrent = qTable[direction, rigLef, belAbo, walno, action]
-    qTable[direction, rigLef, belAbo, walno, action] += alpha * ((getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died) + discount * getFuture(x, y, dirnx, dirny, applx, apply, 3)) - qCurrent)
+    rewardTotal += getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died)
+    print(rewardTotal)
+    print(qCurrent)
+    print((getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died) + discount * getFutureState(x, y, dirnx, dirny, applx, apply, 1) == qCurrent))
+    qTable[direction, rigLef, belAbo, walno, action] += alpha * (getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died) + discount * getFutureState(x, y, dirnx, dirny, applx, apply, 1))

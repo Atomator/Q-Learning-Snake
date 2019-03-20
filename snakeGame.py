@@ -109,7 +109,7 @@ def main():
 
         move = howMove(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply)
 
-        beforeX, beforeY = snake.x, snake.y
+        beforeX, beforeY, beforeDirnx, beforeDirny = snake.x, snake.y, snake.dirnx, snake.dirny
 
         # Moves the snake
         snake.move(win, move)
@@ -127,7 +127,7 @@ def main():
                 died = True
                 break
 
-        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, beforeX[0], beforeY[0], died)
+        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, beforeX[0], beforeY[0], died, move, beforeDirnx, beforeDirny)
 
         if died:
             snake.x = newX
