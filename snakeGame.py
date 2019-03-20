@@ -15,21 +15,21 @@ class snakeOb(object):
         self.dirnx = 0
         self.dirny = 0
         self.cube = cube()
-        self.x = [self.width/2]
-        self.y = [self.width/2]
+        self.x = [240] # [self.width/2]
+        self.y = [240] # [self.width/2]
 
     # Responsible for movement of the snake
     def move(self, surface, move):
-        if move == 0:
+        if move == 0 and (self.dirnx != 1 or self.dirny != 0):
             self.dirnx = -1
             self.dirny = 0
-        elif move == 1:
+        elif move == 1 and (self.dirnx != -1 or self.dirny != 0):
             self.dirnx = 1
             self.dirny = 0
-        elif move == 2:
+        elif move == 2 and (self.dirnx != 0 or self.dirny != 1):
             self.dirnx = 0
             self.dirny = -1
-        elif move == 3:
+        elif move == 3 and (self.dirnx != 0 or self.dirny != -1):
             self.dirnx = 0
             self.dirny = 1
 
@@ -93,7 +93,7 @@ def main():
     win = pygame.display.set_mode((width , width))
     snake = snakeOb((0,255,0), (250,250), snakeSize, width)
     apple = cube()
-    applx, apply = createSnack(width, snakeSize, snake)
+    applx, apply = 240, 260 # createSnack(width, snakeSize, snake)
     highScore = 0
     move = 0
     died = False
@@ -105,7 +105,7 @@ def main():
     # Runs game
     while flag:
         # Limits the frame rate of the application
-        clock.tick(120)
+        clock.tick(60)
 
         move = howMove(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply)
 
@@ -148,7 +148,7 @@ def main():
         score = len(snake.x)
         if score > highScore:
             highScore = score
-            print(highScore)
+            print(highScore, end='\r')
 
         # Makes sure game is responding to Mac
         for event in pygame.event.get():
