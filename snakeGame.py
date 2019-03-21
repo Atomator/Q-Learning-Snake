@@ -96,6 +96,7 @@ def main():
     applx, apply = 240, 260 # createSnack(width, snakeSize, snake)
     highScore = 0
     move = 0
+    inFront = 0
     died = False
     flag = True
 
@@ -105,11 +106,25 @@ def main():
     # Runs game
     while flag:
         # Limits the frame rate of the application
-        clock.tick(60)
+        clock.tick(120)
 
-        move = howMove(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply)
+        for i in range(len(snake.x)-1,2,-1):
+            inFront = 0
+            if snake.x[i] == snake.x[0] + 20:
+                inFront = 1 
+            if snake.y[i] == snake.y[0] + 20:
+                inFront += 2 
+            if snake.x[i] == snake.x[0] - 20:
+                inFront += 4  
+            if snake.y[i] == snake.y[0] - 20:
+                inFront += 8
 
-        beforeX, beforeY, beforeDirnx, beforeDirny = snake.x, snake.y, snake.dirnx, snake.dirny
+        move = howMove(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, inFront)
+
+        beforeX = snake.x[0]
+        beforeY = snake.y[0]
+        beforeDirnx = snake.dirnx
+        beforeDirny = snake.dirny
 
         # Moves the snake
         snake.move(win, move)
@@ -127,7 +142,7 @@ def main():
                 died = True
                 break
 
-        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, beforeX[0], beforeY[0], died, move, beforeDirnx, beforeDirny)
+        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, beforeX, beforeY, died, move, beforeDirnx, beforeDirny, inFront)
 
         if died:
             snake.x = newX

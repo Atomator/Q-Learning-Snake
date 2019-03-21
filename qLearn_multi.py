@@ -4,10 +4,10 @@ import random
 import time
 
 # 1: Direction, 2: Right, Left, Inline, 3: Above, Below, Inline, 4: Wall or Not, 5: Actions
-qTable = np.random.rand(4, 3, 3, 2, 4)
-discount = 0.6
+qTable = np.random.rand(4, 3, 3, 2, 4, 15)
+discount = 0.3
 alpha = 0.3
-chance = 5
+chance = -1
 rewardTotal = 0 
 
 # Get the state variables for the snake
@@ -48,13 +48,13 @@ def getState(x, y, dirnx, dirny, applx, apply):
     return direction, rigLef, belAbo, walno
 
 # Gets the movement based on qTable
-def howMove(x, y, dirnx, dirny, applx, apply):
+def howMove(x, y, dirnx, dirny, applx, apply, inFront):
     ep = random.randint(0, 100)
     if ep <= chance:
         action = [random.randint(0, 3)]
     else:
         direction, rigLef, belAbo, walno = getState(x, y, dirnx, dirny, applx, apply)
-        action = np.argwhere(qTable[direction, rigLef, belAbo, walno,:] == np.amax(qTable[direction, rigLef, belAbo, walno,:]))
+        action = np.argwhere(qTable[direction, rigLef, belAbo, walno,:, inFront] == np.amax(qTable[direction, rigLef, belAbo, walno,:, inFront]))
     return action[0]
 
 def getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died):
@@ -62,14 +62,15 @@ def getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died):
     distance_old = math.sqrt((applx - beforeX) ** 2 + (apply - beforeY) ** 2)
     distance = math.sqrt((applx - x) ** 2 + (apply - y) ** 2)
     if x == applx and y == apply:
-        reward = 1
-        chance -= 1
+        reward = 10
     elif died:
+        reward = -10
+    elif distance_old <= distance:
         reward = -1
-    elif distance_old > distance:
-        reward = 0.01
+    # elif distance_old > distance:
+    #     reward = 0.01
     else:
-        reward = -0.1
+        reward = 0
     return reward
 
 # Add apple shift
@@ -124,6 +125,7 @@ def getFuture(x, y, dirnx, dirny, applx, apply, timeRun):
         reward += reward_high
 
     return reward
+    
 def getFutureState(x, y, dirnx, dirny, applx, apply, timeRun):
     state = 0 
     for i in range(timeRun):
@@ -166,10 +168,9 @@ def getFutureState(x, y, dirnx, dirny, applx, apply, timeRun):
 
     return state
 
-def updateQ(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died, action, beforeDirnx, beforeDirny):
+def updateQ(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died, action, beforeDirnx, beforeDirny, inFront):
     global qTable, rewardTotal
     direction, rigLef, belAbo, walno = getState(beforeX, beforeY, beforeDirnx, beforeDirny, applx, apply)
-    qCurrent = qTable[direction, rigLef, belAbo, walno, action]
-    # qTable[direction, rigLef, belAbo, walno, action] += (1 - alpha) * qCurrent + alpha * (getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died) + discount * getFuture(x, y, dirnx, dirny, applx, apply, 3))
-    qTable[direction, rigLef, belAbo, walno, action] += alpha * getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died)
+    qCurrent = qTable[direction, rigLef, belAbo, walno, action, inFront]
+    qTable[direction, rigLef, belAbo, walno, action, inFront] += alpha * (getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died))
     rewardTotal += getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died)
