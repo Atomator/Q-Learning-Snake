@@ -1,22 +1,24 @@
 import math
 import numpy as np
 import random
-import time
 
+# Multi-Dimentional qTable
 # 1: Direction, 2: Right, Left, Inline, 3: Above, Below, Inline, 4: Wall or Not, 5: Actions
-qTable = np.random.rand(4, 3, 3, 2, 4, 15)
-discount = 0.3
+qTable = np.random.rand(4, 3, 3, 2, 15, 4)
+
+# Learning Rate
 alpha = 0.3
-chance = -1
-rewardTotal = 0 
 
 # Get the state variables for the snake
 def getState(x, y, dirnx, dirny, applx, apply):
+    # Variables for each part of the state
     direction = 0
     rigLef = 0
     belAbo = 0
     walno = 0
+    inFront = 0
 
+    # Sets the direction
     if dirnx == -1 and dirny == 0:
         direction = 0
     elif dirnx == 1 and dirny == 0:
@@ -26,151 +28,80 @@ def getState(x, y, dirnx, dirny, applx, apply):
     elif dirnx == 0 and dirny == 1:
         direction = 3
 
-    if x > applx:
+    # Sets the X relative to the Apple
+    if x[0] > applx:
         rigLef = 0
-    elif x < applx:
+    elif x[0] < applx:
         rigLef = 1
-    elif x == applx:
+    elif x[0] == applx:
         rigLef = 2
 
-    if y > apply:
+    # Sets the Y relative to the Apple
+    if y[0] > apply:
         belAbo = 0
-    elif y < apply:
+    elif y[0] < apply:
         belAbo = 1
-    elif y == apply:
+    elif y[0] == apply:
         belAbo = 2
 
-    if x == 0 or x == 380 or y == 0 or y == 380:
+    # Tells the snake if it is close to a wall
+    if x[0] == 0 or x[0] == 380 or y[0] == 0 or y[0] == 380:
         walno = 1
     else:
         walno = 0
 
-    return direction, rigLef, belAbo, walno
+    # If a part of the snake is near itself
+    for i in range(len(x)-1,2,-1):
+        inFront = 0
+        if x[i] == x[0] + 20:
+            inFront = 1 
+        if y[i] == y[0] + 20:
+            inFront += 2 
+        if x[i] == x[0] - 20:
+            inFront += 4  
+        if y[i] == y[0] - 20:
+            inFront += 8
+
+    return direction, rigLef, belAbo, walno, inFront
 
 # Gets the movement based on qTable
-def howMove(x, y, dirnx, dirny, applx, apply, inFront):
-    ep = random.randint(0, 100)
-    if ep <= chance:
-        action = [random.randint(0, 3)]
-    else:
-        direction, rigLef, belAbo, walno = getState(x, y, dirnx, dirny, applx, apply)
-        action = np.argwhere(qTable[direction, rigLef, belAbo, walno,:, inFront] == np.amax(qTable[direction, rigLef, belAbo, walno,:, inFront]))
+def howMove(x, y, dirnx, dirny, applx, apply):
+    # Gets the states
+    direction, rigLef, belAbo, walno, inFront = getState(x, y, dirnx, dirny, applx, apply)
+
+    # Finds action relative to state
+    action = np.argwhere(qTable[direction, rigLef, belAbo, walno, inFront, :] == np.amax(qTable[direction, rigLef, belAbo, walno, inFront, :]))
+
     return action[0]
 
+# Find the reward based on current state
 def getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died):
-    global chance
-    distance_old = math.sqrt((applx - beforeX) ** 2 + (apply - beforeY) ** 2)
-    distance = math.sqrt((applx - x) ** 2 + (apply - y) ** 2)
-    if x == applx and y == apply:
+    # Sets the previous and current distance from apple
+    distance_old = math.sqrt((applx - beforeX[0]) ** 2 + (apply - beforeY[0]) ** 2)
+    distance = math.sqrt((applx - x[0]) ** 2 + (apply - y[0]) ** 2)
+
+    # Eats the apple
+    if x[0] == applx and y[0] == apply:
         reward = 10
+    
+    # Snake died
     elif died:
         reward = -10
+
+    # Got closer to the apple
     elif distance_old <= distance:
         reward = -1
-    # elif distance_old > distance:
-    #     reward = 0.01
+    
+    # Moves
     else:
         reward = 0
     return reward
 
-# Add apple shift
-def getFuture(x, y, dirnx, dirny, applx, apply, timeRun):
-    reward = 0 
-    for i in range(timeRun):
-        reward_high = 0
-        reward_temp = 0
-        beforeX = x
-        beforeY = y
-        for i in range(4):
-            x_temp = beforeX
-            y_temp = beforeY
-            died = False
+# Updates qTable
+def updateQ(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died, action, beforeDirnx, beforeDirny):
+    global qTable
+    # Gets state before movement
+    direction, rigLef, belAbo, walno, inFront = getState(beforeX, beforeY, beforeDirnx, beforeDirny, applx, apply)
 
-            if i == 0:
-                dirnx_temp = -1
-                dirny_temp = 0
-            elif i == 1:
-                dirnx_temp = 1
-                dirny_temp = 0
-            elif i == 2:
-                dirnx_temp = 0
-                dirny_temp = -1
-            elif i == 3:
-                dirnx_temp = 0
-                dirny_temp = 1
-
-            x_temp = x_temp + dirnx_temp * 20
-            y_temp = y_temp + dirny_temp * 20
-
-            if x_temp >= 400 or y_temp >= 400 or x_temp < 0 or y_temp < 0:
-                died = True
-
-            reward_temp = getReward(x_temp, y_temp, dirnx_temp, dirny_temp, applx, apply, beforeX, beforeY, died)
-            # print(str(i) + ': ' + str(reward_temp))
-
-            if reward_temp > reward_high:
-                reward_high = reward_temp
-                x = x_temp
-                y = y_temp
-                dirnx = dirnx_temp
-                dirny = dirny_temp
-
-        if died:
-            x = random.randint(0,(400/20)-1) * 20
-            y = random.randint(0,(400/20)-1) * 20
-            dirnx = 0
-            dirny = 0
-            died = False
-
-        reward += reward_high
-
-    return reward
-    
-def getFutureState(x, y, dirnx, dirny, applx, apply, timeRun):
-    state = 0 
-    for i in range(timeRun):
-
-        move = howMove(x, y, dirnx, dirny, applx, apply)
-        died = False
-
-        beforeX = x
-        beforeY = y
-
-        if move == 0:
-            dirnx = -1
-            dirny = 0
-        elif move == 1:
-            dirnx = 1
-            dirny = 0
-        elif move == 2:
-            dirnx = 0
-            dirny = -1
-        elif move == 3:
-            dirnx = 0
-            dirny = 1
-
-        x += dirnx * 20
-        y += dirny * 20
-
-        if x >= 400 or y >= 400 or x < 0 or y < 0:
-            died = True
-
-        direction, rigLef, belAbo, walno = getState(x, y, dirnx, dirny, applx, apply)
-
-        state += qTable[direction, rigLef, belAbo, walno, move]
-
-        if died:
-            x = random.randint(0,(400/20)-1) * 20
-            y = random.randint(0,(400/20)-1) * 20
-            dirnx = 0
-            dirny = 0
-            died = False
-
-    return state
-
-def updateQ(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died, action, beforeDirnx, beforeDirny, inFront):
-    global qTable, rewardTotal
-    direction, rigLef, belAbo, walno = getState(beforeX, beforeY, beforeDirnx, beforeDirny, applx, apply)
-    qCurrent = qTable[direction, rigLef, belAbo, walno, action, inFront]
-    qTable[direction, rigLef, belAbo, walno, action, inFront] += alpha * (getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died))
-    rewardTotal += getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died)
+    # Updates the action associtated previous state based on reward from current state
+    qTable[direction, rigLef, belAbo, walno, inFront, action] += alpha * (getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died))

@@ -1,9 +1,9 @@
 import math
 import random
-import sys
 import pygame
+import numpy as np
 
-from qLearn_multi import *
+from qLearn_multi import updateQ, howMove
 
 class snakeOb(object):
 
@@ -33,6 +33,7 @@ class snakeOb(object):
             self.dirnx = 0
             self.dirny = 1
 
+        # Moves the snake
         self.x[0] = self.x[0] + self.dirnx * self.snakeSize
         self.y[0] = self.y[0] + self.dirny * self.snakeSize
 
@@ -41,7 +42,7 @@ class snakeOb(object):
             self.x[i] = self.x[i-1]
             self.y[i] = self.y[i-1]
 
-    # Adds a cube to the snake
+    # Function to add a cube to the snake
     def addCube(self):
         self.x.append(self.x[len(self.x)-1])
         self.y.append(self.y[len(self.y)-1])
@@ -78,100 +79,133 @@ def createSnack(width, snakeSize, snake):
     # Returns the variables needed to create the snack
     return (x,y)
 
-# Redraws the window with the snake
-def redrawWindow(surface, s, a, applx, apply, snakeSize):
-    surface.fill((0,0,0))
+# Redraws the window with the snake, apple and different scores
+def redrawWindow(surface, s, a, applx, apply, snakeSize, score, higherScore, gamesPlayed):
+    surface.fill((255,255,255))
     s.drawSnake(surface)
-    a.draw(surface, applx, apply, snakeSize, (255,0,0))
+    a.draw(surface, applx, apply, snakeSize, (205,92,92))
+    surface.blit(score,(5,5))
+    surface.blit(higherScore,(5,25))
+    surface.blit(gamesPlayed,(5,45))
     pygame.display.update()
+
+# Function set change the speed of the program
+def setSpeed(speed):
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                while True:
+                    try:
+                        speed = int(input("Set Speed: "))
+                        if speed > 0 and speed <= 120:
+                            print("Speed = " + str(speed))
+                            return int(speed)
+                        else:
+                            print("Invalid Option; Select a Number between 1 and 120")
+                            continue
+                    except:
+                        print("Invalid Option")
+
+    return speed
 
 # Main function that creates base objects and loops through objects and functions
 def main():
+
+    # Initilizes pygame
+    pygame.init()
+
+    # Starts the font
+    pygame.font.init()
+    myfont = pygame.font.SysFont('Avenir', 25) 
+
+
     # Initial parameters
     width = 400
     snakeSize = 20
     win = pygame.display.set_mode((width , width))
-    snake = snakeOb((0,255,0), (250,250), snakeSize, width)
+    snake = snakeOb((65,105,225), (250,250), snakeSize, width)
     apple = cube()
     applx, apply = 240, 260 # createSnack(width, snakeSize, snake)
     highScore = 0
     move = 0
-    inFront = 0
     died = False
     flag = True
+    beforeX = 0
+    beforeY = 0
+    beforeDirnx = 0
+    beforeDirny = 0
+    games = 0
+    speed = 120
 
     # Starts the clock
     clock = pygame.time.Clock()
 
     # Runs game
     while flag:
+
         # Limits the frame rate of the application
-        clock.tick(120)
+        clock.tick(speed)
 
-        for i in range(len(snake.x)-1,2,-1):
-            inFront = 0
-            if snake.x[i] == snake.x[0] + 20:
-                inFront = 1 
-            if snake.y[i] == snake.y[0] + 20:
-                inFront += 2 
-            if snake.x[i] == snake.x[0] - 20:
-                inFront += 4  
-            if snake.y[i] == snake.y[0] - 20:
-                inFront += 8
+        # Change the speed of the function
+        speed = setSpeed(speed)
 
-        move = howMove(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, inFront)
+        # Moves the snake
+        move = howMove(snake.x, snake.y, snake.dirnx, snake.dirny, applx, apply)
 
-        beforeX = snake.x[0]
-        beforeY = snake.y[0]
+        # Stores the state information for future use
+        beforeX = np.array(snake.x)
+        beforeY = np.array(snake.y)
         beforeDirnx = snake.dirnx
         beforeDirny = snake.dirny
 
         # Moves the snake
         snake.move(win, move)
 
-        newX = [random.randint(0,(snake.width/snake.snakeSize)-1) * snake.snakeSize]
-        newY = [random.randint(0,(snake.width/snake.snakeSize)-1) * snake.snakeSize]
-
         # Checks to see if the snake hits a wall
         if snake.x[0] >= 400 or snake.y[0] >= 400 or snake.x[0] < 0 or snake.y[0] < 0:
             died = True
 
         # Checks to see if the snake has run into itself (Needs to moved)
-        for i in range(len(snake.x)-1,2,-1):
+        for i in range(len(snake.x) - 1, 2, -1):
             if snake.x[i] == snake.x[0] and snake.y[i] == snake.y[0]:
                 died = True
                 break
 
-        updateQ(snake.x[0], snake.y[0], snake.dirnx, snake.dirny, applx, apply, beforeX, beforeY, died, move, beforeDirnx, beforeDirny, inFront)
+        # Updates the Q table
+        updateQ(snake.x, snake.y, snake.dirnx, snake.dirny, applx, apply, beforeX, beforeY, died, move, beforeDirnx, beforeDirny)
 
+        # Resets the snake upon death
         if died:
-            snake.x = newX
-            snake.y = newY
+            snake.x = [random.randint(0,(snake.width/snake.snakeSize)-1) * snake.snakeSize]
+            snake.y = [random.randint(0,(snake.width/snake.snakeSize)-1) * snake.snakeSize]
             snake.dirnx = 0
             snake.dirny = 0
+            games += 1
             died = False
 
         # Adds a cube to the snake and move the apple
-        if int(snake.x[0]) == applx and int(snake.y[0]) == apply:
+        if snake.x[0] == applx and snake.y[0] == apply:
             snake.addCube()
             applx, apply = createSnack(width, snakeSize, snake)
-        
-        # Draws the window
-        if highScore > 0:
-            redrawWindow(win, snake, apple, applx, apply, snakeSize)
 
+        # Tracks the high score
         score = len(snake.x)
         if score > highScore:
             highScore = score
-            print(highScore, end='\r')
+
+        # Creates the fonts for each score item
+        score = myfont.render("Current: " + str(score), True, (20, 20, 20))
+        higherScore = myfont.render("High: " + str(highScore), True, (20, 20, 20))
+        gamesPlayed = myfont.render("Games: " + str(games), True, (20, 20, 20))
+
+        # Draws the windows
+        redrawWindow(win, snake, apple, applx, apply, snakeSize, score, higherScore, gamesPlayed)
 
         # Makes sure game is responding to Mac
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                  sys.exit(0)
-
-# Initilizes pygame
-pygame.init()
 
 # Runs the main function
 main()
