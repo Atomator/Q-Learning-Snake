@@ -20,27 +20,58 @@ class snakeOb(object):
 
     # Responsible for movement of the snake
     def move(self, surface, move):
-        if move == 0 and (self.dirnx != 1 or self.dirny != 0):
-            self.dirnx = -1
-            self.dirny = 0
-        elif move == 1 and (self.dirnx != -1 or self.dirny != 0):
-            self.dirnx = 1
-            self.dirny = 0
-        elif move == 2 and (self.dirnx != 0 or self.dirny != 1):
-            self.dirnx = 0
-            self.dirny = -1
-        elif move == 3 and (self.dirnx != 0 or self.dirny != -1):
-            self.dirnx = 0
-            self.dirny = 1
+        # Used to make sure the Mac thinks the program is responding
 
-        # Moves the snake
-        self.x[0] = self.x[0] + self.dirnx * self.snakeSize
-        self.y[0] = self.y[0] + self.dirny * self.snakeSize
+        # Checks for an event every clock tick then loops through events to see if a pygame.QUIT is called
+        for event in pygame.event.get():
+            # If this event is called, it quits the program
+            if event.type == pygame.QUIT:
+                pygame.quit()
 
-        # Changes to position of each part of the snake
-        for i in range(len(self.x)-1,0,-1):
-            self.x[i] = self.x[i-1]
-            self.y[i] = self.y[i-1]
+            # This in an array that has 1s or 0s depending on whether a key was pressed
+            keys = pygame.key.get_pressed()
+
+            for key in keys:
+                if keys[pygame.K_LEFT] and (self.dirnx != 1 or self.dirny != 0):
+                    self.dirnx = -1
+                    self.dirny = 0
+                    self.x[0] = self.x[0] + self.dirnx * self.snakeSize
+                    self.y[0] = self.y[0] + self.dirny * self.snakeSize
+                    # Changes to position of each part of the snake
+                    for i in range(len(self.x)-1,0,-1):
+                        self.x[i] = self.x[i-1]
+                        self.y[i] = self.y[i-1]
+                    break
+                elif keys[pygame.K_RIGHT] and (self.dirnx != -1 or self.dirny != 0):
+                    self.dirnx = 1
+                    self.dirny = 0
+                    self.x[0] += self.dirnx * self.snakeSize
+                    self.y[0] += self.dirny * self.snakeSize
+                    # Changes to position of each part of the snake
+                    for i in range(len(self.x)-1,0,-1):
+                        self.x[i] = self.x[i-1]
+                        self.y[i] = self.y[i-1]
+                    break
+                elif keys[pygame.K_UP] and (self.dirnx != 0 or self.dirny != 1):
+                    self.dirnx = 0
+                    self.dirny = -1
+                    self.x[0] += self.dirnx * self.snakeSize
+                    self.y[0] += self.dirny * self.snakeSize
+                    # Changes to position of each part of the snake
+                    for i in range(len(self.x)-1,0,-1):
+                        self.x[i] = self.x[i-1]
+                        self.y[i] = self.y[i-1]
+                    break
+                elif keys[pygame.K_DOWN] and (self.dirnx != 0 or self.dirny != -1):
+                    self.dirnx = 0
+                    self.dirny = 1
+                    self.x[0] += self.dirnx * self.snakeSize
+                    self.y[0] += self.dirny * self.snakeSize
+                    # Changes to position of each part of the snake
+                    for i in range(len(self.x)-1,0,-1):
+                        self.x[i] = self.x[i-1]
+                        self.y[i] = self.y[i-1]
+                    break
 
     # Function to add a cube to the snake
     def addCube(self):
@@ -80,14 +111,13 @@ def createSnack(width, snakeSize, snake):
     return (x,y)
 
 # Redraws the window with the snake, apple and different scores
-def redrawWindow(surface, s, a, applx, apply, snakeSize, score, higherScore, gamesPlayed, avg):
+def redrawWindow(surface, s, a, applx, apply, snakeSize, score, higherScore, gamesPlayed):
     surface.fill((255,255,255))
     s.drawSnake(surface)
     a.draw(surface, applx, apply, snakeSize, (205,92,92))
     surface.blit(score,(5,5))
     surface.blit(higherScore,(5,25))
     surface.blit(gamesPlayed,(5,45))
-    surface.blit(avg,(5,65))
     pygame.display.update()
 
 # Function set change the speed of the program
@@ -137,9 +167,7 @@ def main():
     beforeDirnx = 0
     beforeDirny = 0
     games = 0
-    avgScore = 0
-    totalScore = 0
-    speed = 120
+    speed = 5
 
     # Starts the clock
     clock = pygame.time.Clock()
@@ -148,10 +176,7 @@ def main():
     while flag:
 
         # Limits the frame rate of the application
-        clock.tick(speed)
-
-        # Change the speed of the function
-        speed = setSpeed(speed)
+        clock.tick(10)
 
         # Moves the snake
         move = howMove(snake.x, snake.y, snake.dirnx, snake.dirny, applx, apply)
@@ -185,9 +210,6 @@ def main():
             snake.dirnx = 0
             snake.dirny = 0
             games += 1
-            totalScore += score 
-            avgScore = totalScore / games
-            score = 0
             died = False
 
         # Adds a cube to the snake and move the apple
@@ -201,13 +223,12 @@ def main():
             highScore = score
 
         # Creates the fonts for each score item
-        scoreCurrent = myfont.render("Current: " + str(score), True, (20, 20, 20))
+        score = myfont.render("Current: " + str(score), True, (20, 20, 20))
         higherScore = myfont.render("High: " + str(highScore), True, (20, 20, 20))
-        avg = myfont.render("Average Score: " + str(avgScore), True, (20, 20, 20))
         gamesPlayed = myfont.render("Games: " + str(games), True, (20, 20, 20))
 
         # Draws the windows
-        redrawWindow(win, snake, apple, applx, apply, snakeSize, scoreCurrent, higherScore, gamesPlayed, avg)
+        redrawWindow(win, snake, apple, applx, apply, snakeSize, score, higherScore, gamesPlayed)
 
         # Makes sure game is responding to Mac
         for event in pygame.event.get():
