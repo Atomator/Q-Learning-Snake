@@ -4,7 +4,7 @@ import random
 
 # Multi-Dimentional qTable
 # 1: Direction, 2: Right, Left, Inline, 3: Above, Below, Inline, 4: Wall or Not, 5: Actions
-qTable = np.random.rand(4, 3, 3, 2, 16, 4)
+qTable = np.random.rand(4, 3, 3, 2, 15, 4)
 
 # Learning Rate
 alpha = 0.3
@@ -52,14 +52,15 @@ def getState(x, y, dirnx, dirny, applx, apply):
 
     # If a part of the snake is near itself
     for i in range(len(x)-1, 2, -1):
-        if x[i] == x[0] + 20 and y[i] == y[0]:
+        if x[i] == x[0] + 20 and y[i] == y[0] and inFront != 1:
             inFront += 1
-        if y[i] == y[0] + 20 and x[i] == x[0]:
+        if y[i] == y[0] + 20 and x[i] == x[0] and inFront != 2:
             inFront += 2 
-        if x[i] == x[0] - 20 and y[i] == y[0]:
+        if x[i] == x[0] - 20 and y[i] == y[0] and inFront != 4:
             inFront += 4
-        if y[i] == y[0] - 20 and x[i] == x[0]:
+        if y[i] == y[0] - 20 and x[i] == x[0] and inFront != 8:
             inFront += 8
+
 
     return direction, rigLef, belAbo, walno, inFront
 
