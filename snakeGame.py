@@ -81,9 +81,9 @@ def createSnack(width, snakeSize, snake):
 
 # Redraws the window with the snake, apple and different scores
 def redrawWindow(surface, s, a, applx, apply, snakeSize, score, higherScore, gamesPlayed, avg):
-    surface.fill((255,255,255))
+    surface.fill((247,247,255))
     s.drawSnake(surface)
-    a.draw(surface, applx, apply, snakeSize, (205,92,92))
+    a.draw(surface, applx, apply, snakeSize, (70,83,98))
     surface.blit(score,(5,5))
     surface.blit(higherScore,(5,25))
     surface.blit(gamesPlayed,(5,45))
@@ -125,7 +125,7 @@ def main():
     width = 400
     snakeSize = 20
     win = pygame.display.set_mode((width , width))
-    snake = snakeOb((65,105,225), (250,250), snakeSize, width)
+    snake = snakeOb((113,169,247), (250,250), snakeSize, width)
     apple = cube()
     applx, apply = 240, 260 # createSnack(width, snakeSize, snake)
     highScore = 0
