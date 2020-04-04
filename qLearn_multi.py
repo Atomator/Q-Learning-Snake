@@ -91,6 +91,10 @@ def getReward(x, y, dirnx, dirny, applx, apply, beforeX, beforeY, died):
     # Got closer to the apple
     elif distance_old <= distance:
         reward = -1
+
+    # # When the snake is close to itself
+    # elif distance_old <= distance:
+    #     reward = -1
     
     # Moves
     else:
