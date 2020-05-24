@@ -1,2 +1,2 @@
-# create-task
-This is the code for a basic Snake Game that also use Q Learning in order to teach the computer how to play the game.
+# Q-Learning Snake
+In order for me to try and improve my machine learning skills, I created a simple snake game in python that I could teach a computer to play. To learn more about the journey for this game please visit https://cosparks.me/#/projects/qlearning.
